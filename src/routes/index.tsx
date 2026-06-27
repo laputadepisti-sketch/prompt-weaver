@@ -9,17 +9,20 @@ import { MessageMarkdown } from "@/components/MessageMarkdown";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Prompt Optimizer — Claude Fable 5" },
+      { title: "Prompt Optimizer — rövid, pontos promptok bármelyik modellhez" },
       {
         name: "description",
         content:
-          "Alakítsd át a nyers promptjaidat Claude Fable 5-re hangolt, forrásokkal alátámasztott promptokká, majd finomítsd tovább utasításokkal.",
+          "Alakítsd át a nyers promptjaidat rövid, egyértelmű, bármelyik AI modellhez illő promptokká, majd finomítsd tovább utasításokkal.",
       },
-      { property: "og:title", content: "Prompt Optimizer — Claude Fable 5" },
+      {
+        property: "og:title",
+        content: "Prompt Optimizer — rövid, pontos promptok bármelyik modellhez",
+      },
       {
         property: "og:description",
         content:
-          "Alakítsd át a nyers promptjaidat Claude Fable 5-re hangolt, forrásokkal alátámasztott promptokká, majd finomítsd tovább utasításokkal.",
+          "Alakítsd át a nyers promptjaidat rövid, egyértelmű, bármelyik AI modellhez illő promptokká, majd finomítsd tovább utasításokkal.",
       },
     ],
   }),
@@ -38,10 +41,11 @@ function displayUserText(text: string): string {
 }
 
 const EXAMPLES = [
-  "Foglald össze a csatolt piaci jelentést, és magyarázd el lépésről lépésre a gondolatmenetedet.",
+  "Javítsd ki a kódom összes hibáját, és add vissza a teljes, rövidítetlen fájlt egyben.",
   "Write a Python script that scrapes a website and stores results in a database.",
-  "Készíts egy ügynököt, ami több lépésben átnézi a kódbázist és kijavítja a hibákat.",
+  "Írd át ezt a technikai leírást egyetlen, teljes, lépésről lépésre építő prompttá.",
 ];
+
 
 function OptimizerApp() {
   const [input, setInput] = useState("");
@@ -113,7 +117,7 @@ function OptimizerApp() {
             </div>
             <div className="leading-tight">
               <h1 className="text-[17px] font-semibold tracking-tight">Prompt Optimizer</h1>
-              <p className="text-[12px] font-medium text-muted-foreground">Claude Fable 5</p>
+              <p className="text-[12px] font-medium text-muted-foreground">Bármelyik modellhez</p>
             </div>
           </div>
           <button
@@ -230,8 +234,8 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
       </div>
       <h2 className="mt-5 text-[22px] font-bold tracking-tight">Promptoptimalizálás</h2>
       <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-muted-foreground">
-        Illeszd be a nyers promptodat, és visszakapod a Claude Fable 5-re hangolt változatot
-        forrásokkal alátámasztott változásnaplóval. Utána tovább finomíthatod.
+        Illeszd be a nyers promptodat, és visszakapod a rövid, egyértelmű, bármelyik AI
+        modellhez illő változatát változásnaplóval. Utána tovább finomíthatod.
       </p>
       <div className="mt-7 w-full space-y-2">
         <p className="text-left text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
