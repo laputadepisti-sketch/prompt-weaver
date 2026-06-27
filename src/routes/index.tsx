@@ -117,7 +117,7 @@ function OptimizerApp() {
             </div>
             <div className="leading-tight">
               <h1 className="text-[17px] font-semibold tracking-tight">Prompt Optimizer</h1>
-              <p className="text-[12px] font-medium text-muted-foreground">Claude Fable 5</p>
+              <p className="text-[12px] font-medium text-muted-foreground">Bármelyik modellhez</p>
             </div>
           </div>
           <button
