@@ -234,8 +234,8 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
       </div>
       <h2 className="mt-5 text-[22px] font-bold tracking-tight">Promptoptimalizálás</h2>
       <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-muted-foreground">
-        Illeszd be a nyers promptodat, és visszakapod a Claude Fable 5-re hangolt változatot
-        forrásokkal alátámasztott változásnaplóval. Utána tovább finomíthatod.
+        Illeszd be a nyers promptodat, és visszakapod a rövid, egyértelmű, bármelyik AI
+        modellhez illő változatát változásnaplóval. Utána tovább finomíthatod.
       </p>
       <div className="mt-7 w-full space-y-2">
         <p className="text-left text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
