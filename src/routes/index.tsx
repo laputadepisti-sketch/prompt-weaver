@@ -9,17 +9,20 @@ import { MessageMarkdown } from "@/components/MessageMarkdown";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Prompt Optimizer — Claude Fable 5" },
+      { title: "Prompt Optimizer — rövid, pontos promptok bármelyik modellhez" },
       {
         name: "description",
         content:
-          "Alakítsd át a nyers promptjaidat Claude Fable 5-re hangolt, forrásokkal alátámasztott promptokká, majd finomítsd tovább utasításokkal.",
+          "Alakítsd át a nyers promptjaidat rövid, egyértelmű, bármelyik AI modellhez illő promptokká, majd finomítsd tovább utasításokkal.",
       },
-      { property: "og:title", content: "Prompt Optimizer — Claude Fable 5" },
+      {
+        property: "og:title",
+        content: "Prompt Optimizer — rövid, pontos promptok bármelyik modellhez",
+      },
       {
         property: "og:description",
         content:
-          "Alakítsd át a nyers promptjaidat Claude Fable 5-re hangolt, forrásokkal alátámasztott promptokká, majd finomítsd tovább utasításokkal.",
+          "Alakítsd át a nyers promptjaidat rövid, egyértelmű, bármelyik AI modellhez illő promptokká, majd finomítsd tovább utasításokkal.",
       },
     ],
   }),
@@ -38,10 +41,11 @@ function displayUserText(text: string): string {
 }
 
 const EXAMPLES = [
-  "Foglald össze a csatolt piaci jelentést, és magyarázd el lépésről lépésre a gondolatmenetedet.",
+  "Javítsd ki a kódom összes hibáját, és add vissza a teljes, rövidítetlen fájlt egyben.",
   "Write a Python script that scrapes a website and stores results in a database.",
-  "Készíts egy ügynököt, ami több lépésben átnézi a kódbázist és kijavítja a hibákat.",
+  "Írd át ezt a technikai leírást egyetlen, teljes, lépésről lépésre építő prompttá.",
 ];
+
 
 function OptimizerApp() {
   const [input, setInput] = useState("");
