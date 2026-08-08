@@ -1,8 +1,9 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createOpenAI } from "@ai-sdk/openai";
 
 const LOVABLE_AIG_RUN_ID_HEADER = "X-Lovable-AIG-Run-ID";
 
-export function createLovableAiGatewayProvider(lovableApiKey: string, initialRunId?: string) {
+export function createLovableAiGatewayRunIdFetch(initialRunId?: string) {
   let runId = initialRunId?.trim() || undefined;
   let resolveRunId: (value: string | undefined) => void = () => {};
   let runIdResolved = false;
@@ -22,14 +23,8 @@ export function createLovableAiGatewayProvider(lovableApiKey: string, initialRun
   };
   if (runId) publishRunId(runId);
 
-  const provider = createOpenAICompatible({
-    name: "lovable",
-    baseURL: "https://ai.gateway.lovable.dev/v1",
-    headers: {
-      "Lovable-API-Key": lovableApiKey,
-      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
-    },
-    fetch: async (input, init) => {
+  return {
+    fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
       const headers = new Headers(init?.headers);
       if (runId && !headers.has(LOVABLE_AIG_RUN_ID_HEADER)) {
         headers.set(LOVABLE_AIG_RUN_ID_HEADER, runId);
@@ -44,11 +39,49 @@ export function createLovableAiGatewayProvider(lovableApiKey: string, initialRun
         throw error;
       }
     },
+    getRunId: () => runId,
+    waitForRunId: () => (runId ? Promise.resolve(runId) : runIdReady),
+  };
+}
+
+export function createLovableAiGatewayProvider(lovableApiKey: string, initialRunId?: string) {
+  const runIdFetch = createLovableAiGatewayRunIdFetch(initialRunId);
+
+  const provider = createOpenAICompatible({
+    name: "lovable",
+    baseURL: "https://ai.gateway.lovable.dev/v1",
+    headers: {
+      "Lovable-API-Key": lovableApiKey,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
+    fetch: runIdFetch.fetch as typeof fetch,
   });
 
   return Object.assign(provider, {
-    getRunId: () => runId,
-    waitForRunId: () => (runId ? Promise.resolve(runId) : runIdReady),
+    getRunId: runIdFetch.getRunId,
+    waitForRunId: runIdFetch.waitForRunId,
+  });
+}
+
+export function createLovableAiGatewayResponsesProvider(
+  lovableApiKey: string,
+  initialRunId?: string,
+) {
+  const runIdFetch = createLovableAiGatewayRunIdFetch(initialRunId);
+
+  const provider = createOpenAI({
+    baseURL: "https://ai.gateway.lovable.dev/v1",
+    apiKey: lovableApiKey,
+    headers: {
+      "Lovable-API-Key": lovableApiKey,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
+    fetch: runIdFetch.fetch as typeof fetch,
+  });
+
+  return Object.assign(provider, {
+    getRunId: runIdFetch.getRunId,
+    waitForRunId: runIdFetch.waitForRunId,
   });
 }
 
