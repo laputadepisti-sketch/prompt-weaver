@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import {
-  createLovableAiGatewayProvider,
+  createLovableAiGatewayResponsesProvider,
   getLovableAiGatewayResponseHeaders,
   getLovableAiGatewayRunId,
   withLovableAiGatewayRunIdHeader,
@@ -43,15 +43,25 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         const initialRunId = getLovableAiGatewayRunId(request);
-        const gateway = createLovableAiGatewayProvider(lovableApiKey, initialRunId);
+        const gateway = createLovableAiGatewayResponsesProvider(lovableApiKey, initialRunId);
 
         const result = streamText({
-          model: gateway("google/gemini-3-flash-preview"),
+          model: gateway.responses("openai/gpt-5.6-sol"),
           system: SYSTEM_PROMPT,
           messages: await convertToModelMessages(messages),
+          providerOptions: {
+            openai: {
+              forceReasoning: true,
+              reasoningEffort: "high",
+              reasoningSummary: "auto",
+              store: false,
+              include: ["reasoning.encrypted_content"],
+            },
+          },
         });
 
         const response = result.toUIMessageStreamResponse({
+          sendReasoning: true,
           headers: getLovableAiGatewayResponseHeaders(undefined, {
             ...(initialRunId ? { [LOVABLE_AIG_RUN_ID_HEADER]: initialRunId } : {}),
           }),
