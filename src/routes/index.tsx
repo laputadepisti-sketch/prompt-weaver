@@ -55,10 +55,11 @@ function OptimizerApp() {
   const { messages, sendMessage, status, setMessages, stop } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
     onError: (error) => {
+      const message = error.message ?? "";
       toast.error(
-        error.message?.includes("402")
+        /402|payment required|credit/i.test(message)
           ? "Elfogytak az AI kreditek. Tölts fel a munkaterületeden."
-          : error.message?.includes("429")
+          : /429|rate limit|too many/i.test(message)
             ? "Túl sok kérés egyszerre. Próbáld újra pár másodperc múlva."
             : "Nem sikerült optimalizálni. Próbáld újra.",
       );
