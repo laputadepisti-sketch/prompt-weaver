@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "prompt-optimizer",
+      "version": "0.1.0",
+      "title": "Prompt Optimizer"
+    },
+    "tools": [
+      {
+        "name": "optimize_prompt",
+        "title": "Optimize a prompt",
+        "description": "Take a raw, unpolished prompt and rewrite it into a short, precise, model-agnostic prompt using the 'I want to [TASK] so that [SUCCESS CRITERIA]' structure. Returns the optimized prompt, a list of changes, and any open questions. The input language is preserved.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The raw prompt to optimize, verbatim. Include any hard constraints the user already stated."
+            }
+          },
+          "required": [
+            "prompt"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "refine_prompt",
+        "title": "Refine an optimized prompt",
+        "description": "Apply a follow-up instruction (shorten, add a constraint, translate, make stricter, etc.) to an already-optimized prompt and return the full re-emitted optimized prompt. Does not return a diff — it returns the complete refined prompt using the standard output blocks.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The current optimized prompt to refine, verbatim."
+            },
+            "instruction": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The refinement to apply, e.g. 'make it shorter', 'add a no-comments constraint', 'translate to Hungarian'."
+            }
+          },
+          "required": [
+            "prompt",
+            "instruction"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
