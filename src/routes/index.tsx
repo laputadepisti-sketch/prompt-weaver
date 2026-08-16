@@ -47,12 +47,19 @@ const EXAMPLES = [
 ];
 
 
+function newConversationId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `conv-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function OptimizerApp() {
   const [input, setInput] = useState("");
+  const [conversationId, setConversationId] = useState(() => newConversationId());
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { messages, sendMessage, status, setMessages, stop } = useChat({
+
     transport: new DefaultChatTransport({ api: "/api/chat" }),
     onError: (error) => {
       const message = error.message ?? "";
