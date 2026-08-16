@@ -97,9 +97,9 @@ function OptimizerApp() {
     if (!trimmed || isBusy) return;
     const payload =
       !hasOptimized && !/^\s*prompt:/i.test(trimmed) ? `prompt: ${trimmed}` : trimmed;
-    sendMessage({ text: payload });
+    sendMessage({ text: payload }, { body: { conversationId } });
     setInput("");
-  }, [input, isBusy, hasOptimized, sendMessage]);
+  }, [input, isBusy, hasOptimized, sendMessage, conversationId]);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -112,8 +112,10 @@ function OptimizerApp() {
     if (isBusy) stop();
     setMessages([]);
     setInput("");
+    setConversationId(newConversationId());
     textareaRef.current?.focus();
   };
+
 
   return (
     <div className="flex h-[100dvh] flex-col bg-background">
