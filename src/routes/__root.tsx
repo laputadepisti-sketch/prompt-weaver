@@ -83,10 +83,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
       },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "Prompt Optimizer" },
-      { name: "theme-color", content: "#0A84FF" },
-      { title: "Prompt Optimizer" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "AI Chat" },
+      { name: "theme-color", content: "#0B0D12" },
+      { title: "AI Chat" },
       {
         name: "description",
         content:
@@ -117,7 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="hu" className="dark">
       <head>
         <HeadContent />
       </head>
