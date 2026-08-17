@@ -2,31 +2,35 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, Sparkles, SquarePen, Square, Wand2 } from "lucide-react";
+import { ArrowUp, PanelLeft, Sparkles, Square, SquarePen, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { MessageMarkdown } from "@/components/MessageMarkdown";
+import { SkillsSidebar } from "@/components/SkillsSidebar";
+import { DEFAULT_SKILL_ID, getSkill, type SkillId } from "@/lib/skills";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Prompt Optimizer — rövid, pontos promptok bármelyik modellhez" },
+      { title: "AI Chat — asszisztens és prompt optimizer egy helyen" },
       {
         name: "description",
         content:
-          "Alakítsd át a nyers promptjaidat rövid, egyértelmű, bármelyik AI modellhez illő promptokká, majd finomítsd tovább utasításokkal.",
+          "Sötét, natív iOS hangulatú AI chat. Válts skillt az oldalsávban: általános asszisztens vagy modellfüggetlen prompt optimizer.",
       },
       {
         property: "og:title",
-        content: "Prompt Optimizer — rövid, pontos promptok bármelyik modellhez",
+        content: "AI Chat — asszisztens és prompt optimizer egy helyen",
       },
       {
         property: "og:description",
         content:
-          "Alakítsd át a nyers promptjaidat rövid, egyértelmű, bármelyik AI modellhez illő promptokká, majd finomítsd tovább utasításokkal.",
+          "Sötét, natív iOS hangulatú AI chat. Válts skillt az oldalsávban: általános asszisztens vagy modellfüggetlen prompt optimizer.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: OptimizerApp,
+  component: ChatApp,
 });
 
 function messageText(message: UIMessage): string {
@@ -40,47 +44,46 @@ function displayUserText(text: string): string {
   return text.replace(/^\s*prompt:\s*/i, "");
 }
 
-const EXAMPLES = [
-  "Javítsd ki a kódom összes hibáját, és add vissza a teljes, rövidítetlen fájlt egyben.",
-  "Write a Python script that scrapes a website and stores results in a database.",
-  "Írd át ezt a technikai leírást egyetlen, teljes, lépésről lépésre építő prompttá.",
-];
-
-
 function newConversationId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `conv-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function OptimizerApp() {
+function ChatApp() {
   const [input, setInput] = useState("");
+  const [skillId, setSkillId] = useState<SkillId>(DEFAULT_SKILL_ID);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversationId, setConversationId] = useState(() => newConversationId());
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const { messages, sendMessage, status, setMessages, stop } = useChat({
+  const skill = getSkill(skillId);
 
+  const { messages, sendMessage, status, setMessages, stop } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
     onError: (error) => {
       const message = error.message ?? "";
       toast.error(
         /402|payment required|credit/i.test(message)
-          ? "Elfogytak az AI kreditek. Tölts fel a munkaterületeden."
+          ? "Elfogytak az AI kreditek."
           : /429|rate limit|too many/i.test(message)
             ? "Túl sok kérés egyszerre. Próbáld újra pár másodperc múlva."
-            : "Nem sikerült optimalizálni. Próbáld újra.",
+            : "Nem sikerült választ kapni. Próbáld újra.",
       );
     },
   });
 
   const isBusy = status === "submitted" || status === "streaming";
-  const hasOptimized = useMemo(() => messages.some((m) => m.role === "assistant"), [messages]);
+  const hasAssistant = useMemo(
+    () => messages.some((message) => message.role === "assistant"),
+    [messages],
+  );
 
   const resize = useCallback(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+    const element = textareaRef.current;
+    if (!element) return;
+    element.style.height = "auto";
+    element.style.height = `${Math.min(element.scrollHeight, 160)}px`;
   }, []);
 
   useEffect(() => {
@@ -88,18 +91,20 @@ function OptimizerApp() {
   }, [input, resize]);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    const element = scrollRef.current;
+    if (element) element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
 
   const submit = useCallback(() => {
     const trimmed = input.trim();
     if (!trimmed || isBusy) return;
     const payload =
-      !hasOptimized && !/^\s*prompt:/i.test(trimmed) ? `prompt: ${trimmed}` : trimmed;
-    sendMessage({ text: payload }, { body: { conversationId } });
+      skillId === "optimizer" && !hasAssistant && !/^\s*prompt:/i.test(trimmed)
+        ? `prompt: ${trimmed}`
+        : trimmed;
+    sendMessage({ text: payload }, { body: { conversationId, skill: skillId } });
     setInput("");
-  }, [input, isBusy, hasOptimized, sendMessage, conversationId]);
+  }, [input, isBusy, skillId, hasAssistant, sendMessage, conversationId]);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -108,35 +113,58 @@ function OptimizerApp() {
     }
   };
 
-  const startNew = () => {
+  const startNew = useCallback(() => {
     if (isBusy) stop();
     setMessages([]);
     setInput("");
     setConversationId(newConversationId());
     textareaRef.current?.focus();
-  };
+  }, [isBusy, stop, setMessages]);
 
+  const pickSkill = useCallback(
+    (next: SkillId) => {
+      setSidebarOpen(false);
+      if (next === skillId) return;
+      setSkillId(next);
+      startNew();
+    },
+    [skillId, startNew],
+  );
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-background">
-      <header className="ios-blur safe-top sticky top-0 z-20 border-b border-border/60">
-        <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-2.5">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary text-primary-foreground bubble-shadow">
-              <Wand2 size={18} />
-            </div>
-            <div className="leading-tight">
-              <h1 className="text-[17px] font-semibold tracking-tight">Prompt Optimizer</h1>
-              <p className="text-[12px] font-medium text-muted-foreground">Bármelyik modellhez</p>
-            </div>
+    <div className="flex h-[100dvh] flex-col">
+      <SkillsSidebar
+        open={sidebarOpen}
+        activeSkill={skillId}
+        onSelect={pickSkill}
+        onClose={() => setSidebarOpen(false)}
+      />
+
+      <header className="ios-blur safe-top sticky top-0 z-20 border-b border-glass-border">
+        <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-2 px-3 py-2.5">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Skillek megnyitása"
+            className="tap-shrink glass flex h-9 w-9 items-center justify-center rounded-full text-foreground"
+          >
+            <PanelLeft size={18} />
+          </button>
+
+          <div className="min-w-0 text-center leading-tight">
+            <h1 className="truncate text-[16px] font-semibold tracking-tight">{skill.name}</h1>
+            <p className="truncate text-[12px] font-medium text-muted-foreground">
+              {skill.description}
+            </p>
           </div>
+
           <button
             type="button"
             onClick={startNew}
-            aria-label="Új optimalizálás"
-            className="tap-shrink flex h-9 w-9 items-center justify-center rounded-full text-ios-blue"
+            aria-label="Új beszélgetés"
+            className="tap-shrink glass flex h-9 w-9 items-center justify-center rounded-full text-ios-blue"
           >
-            <SquarePen size={21} />
+            <SquarePen size={18} />
           </button>
         </div>
       </header>
@@ -144,7 +172,15 @@ function OptimizerApp() {
       <main ref={scrollRef} className="ios-scroll flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-2xl px-3.5 py-4">
           {messages.length === 0 ? (
-            <EmptyState onPick={(text) => setInput(text)} />
+            <EmptyState
+              title={skill.greetingTitle}
+              body={skill.greetingBody}
+              examples={skill.examples}
+              onPick={(text) => {
+                setInput(text);
+                textareaRef.current?.focus();
+              }}
+            />
           ) : (
             <div className="space-y-3">
               {messages.map((message) => {
@@ -160,32 +196,27 @@ function OptimizerApp() {
                 }
                 return (
                   <div key={message.id} className="flex justify-start">
-                    <div className="bubble-shadow w-full max-w-[92%] break-words rounded-3xl rounded-bl-md border border-border/70 bg-bubble-assistant px-4 py-3 text-bubble-assistant-foreground">
-                      {text ? (
-                        <MessageMarkdown content={text} />
-                      ) : (
-                        <TypingDots />
-                      )}
+                    <div className="glass bubble-shadow w-full max-w-[94%] break-words rounded-3xl rounded-bl-md px-4 py-3 text-bubble-assistant-foreground">
+                      {text ? <MessageMarkdown content={text} /> : <TypingDots />}
                     </div>
                   </div>
                 );
               })}
-              {status === "submitted" &&
-                messages[messages.length - 1]?.role === "user" && (
-                  <div className="flex justify-start">
-                    <div className="bubble-shadow rounded-3xl rounded-bl-md border border-border/70 bg-bubble-assistant px-4 py-3.5">
-                      <TypingDots />
-                    </div>
+              {status === "submitted" && messages[messages.length - 1]?.role === "user" && (
+                <div className="flex justify-start">
+                  <div className="glass bubble-shadow rounded-3xl rounded-bl-md px-4 py-3.5">
+                    <TypingDots />
                   </div>
-                )}
+                </div>
+              )}
             </div>
           )}
         </div>
       </main>
 
-      <footer className="ios-blur safe-bottom sticky bottom-0 z-20 border-t border-border/60">
+      <footer className="ios-blur safe-bottom sticky bottom-0 z-20 border-t border-glass-border">
         <div className="mx-auto w-full max-w-2xl px-3 py-2.5">
-          <div className="flex items-end gap-2 rounded-3xl border border-border bg-card px-2 py-1.5 bubble-shadow">
+          <div className="glass bubble-shadow flex items-end gap-2 rounded-3xl px-2 py-1.5">
             <textarea
               ref={textareaRef}
               value={input}
@@ -193,9 +224,9 @@ function OptimizerApp() {
               onKeyDown={onKeyDown}
               rows={1}
               placeholder={
-                hasOptimized
+                skillId === "optimizer" && hasAssistant
                   ? "Finomíts tovább, pl. „tedd rövidebbé”…"
-                  : "Illeszd be a nyers promptodat…"
+                  : skill.placeholder
               }
               className="ios-scroll max-h-40 flex-1 resize-none bg-transparent px-2 py-1.5 text-[16px] leading-relaxed outline-none placeholder:text-muted-foreground"
             />
@@ -236,27 +267,34 @@ function TypingDots() {
   );
 }
 
-function EmptyState({ onPick }: { onPick: (text: string) => void }) {
+function EmptyState({
+  title,
+  body,
+  examples,
+  onPick,
+}: {
+  title: string;
+  body: string;
+  examples: string[];
+  onPick: (text: string) => void;
+}) {
   return (
     <div className="flex flex-col items-center px-3 pt-10 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-[1.4rem] bg-primary text-primary-foreground bubble-shadow">
+      <div className="glow-ring flex h-16 w-16 items-center justify-center rounded-[1.4rem] bg-primary text-primary-foreground">
         <Sparkles size={30} />
       </div>
-      <h2 className="mt-5 text-[22px] font-bold tracking-tight">Promptoptimalizálás</h2>
-      <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-muted-foreground">
-        Illeszd be a nyers promptodat, és visszakapod a rövid, egyértelmű, bármelyik AI
-        modellhez illő változatát változásnaplóval. Utána tovább finomíthatod.
-      </p>
+      <h2 className="mt-5 text-[22px] font-bold tracking-tight">{title}</h2>
+      <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-muted-foreground">{body}</p>
       <div className="mt-7 w-full space-y-2">
         <p className="text-left text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
           Példák
         </p>
-        {EXAMPLES.map((example) => (
+        {examples.map((example) => (
           <button
             key={example}
             type="button"
             onClick={() => onPick(example)}
-            className="tap-shrink flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left bubble-shadow"
+            className="tap-shrink glass flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left"
           >
             <Wand2 size={17} className="shrink-0 text-ios-blue" />
             <span className="text-[14px] leading-snug text-foreground">{example}</span>
