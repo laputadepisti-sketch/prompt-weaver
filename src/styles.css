@@ -1,10 +1,12 @@
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
+
+@source "../src";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -59,268 +61,99 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-bubble-user: var(--bubble-user);
-  --color-bubble-user-foreground: var(--bubble-user-foreground);
-  --color-bubble-assistant: var(--bubble-assistant);
-  --color-bubble-assistant-foreground: var(--bubble-assistant-foreground);
-  --color-ios-blue: var(--ios-blue);
-  --color-ios-gray: var(--ios-gray);
-  --color-nav: var(--nav);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  --font-body-default: var(--font-body-default-family);
-  --font-body-medium: var(--font-body-medium-family);
-  --font-body-semibold: var(--font-body-semibold-family);
-  --font-caption-default: var(--font-caption-default-family);
-  --font-caption-semibold: var(--font-caption-semibold-family);
-  --font-subheadline: var(--font-subheadline-family);
-  --font-body-long-form: var(--font-body-long-form-family);
 }
 
 :root {
-  --color-surface-base: #000000;
-  --color-deep-navy-glow: #09090f;
-  --color-foreground-primary: #f5f5f7;
+  --radius: 0.625rem;
+  --radius-pill-message-bubble: 1.5rem;
+  --radius-card-input: 0.75rem;
+  --radius-large-pill: 9999px;
+  --radius-full-circle: 9999px;
+
+  --spacing-xs: 0.25rem;
+  --spacing-sm-1: 0.375rem;
+  --spacing-sm-2: 0.5rem;
+  --spacing-sm-3: 0.625rem;
+  --spacing-sm-4: 0.75rem;
+  --spacing-sm-5: 0.875rem;
+  --spacing-base-1: 1rem;
+  --spacing-base-2: 1.125rem;
+  --spacing-base-3: 1.25rem;
+  --spacing-base-4: 1.5rem;
+  --spacing-base-5: 1.75rem;
+  --spacing-base-6: 2rem;
+  --spacing-md-1: 2.25rem;
+  --spacing-md-2: 2.5rem;
+  --spacing-lg: 3rem;
+
+  --color-surface-base: #f8fafc;
+  --color-deep-navy-glow: rgba(30, 58, 138, 0.15);
+  --color-foreground-primary: #0f172a;
   --color-foreground-inverse-button-text: #ffffff;
-  --color-accent-blue: #0000ff;
-  --color-soft-mint: #f6fff9;
+  --color-accent-blue: #2563eb;
+  --color-soft-mint: #10b981;
 
-  --font-body-default-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body-default-size: 16px;
-  --font-body-default-weight: 400;
-  --font-body-default-line-height: normal;
-
-  --font-body-medium-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body-medium-size: 16px;
-  --font-body-medium-weight: 500;
-  --font-body-medium-line-height: normal;
-
-  --font-body-semibold-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body-semibold-size: 16px;
-  --font-body-semibold-weight: 600;
-  --font-body-semibold-line-height: normal;
-
-  --font-caption-default-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-caption-default-size: 11px;
-  --font-caption-default-weight: 400;
-  --font-caption-default-line-height: normal;
-
-  --font-caption-semibold-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-caption-semibold-size: 11px;
-  --font-caption-semibold-weight: 600;
-  --font-caption-semibold-line-height: normal;
-  --font-caption-semibold-letter-spacing: 0.5px;
-
-  --font-subheadline-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-subheadline-size: 15px;
-  --font-subheadline-weight: 600;
-  --font-subheadline-line-height: normal;
-  --font-subheadline-letter-spacing: -0.3px;
-
-  --font-body-long-form-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body-long-form-size: 16px;
-  --font-body-long-form-weight: 400;
-  --font-body-long-form-line-height: 23.2px;
-
-  --spacing-xs: 2px;
-  --spacing-sm-1: 3px;
-  --spacing-sm-2: 4px;
-  --spacing-sm-3: 5px;
-  --spacing-sm-4: 6px;
-  --spacing-sm-5: 7px;
-  --spacing-base-1: 8px;
-  --spacing-base-2: 10px;
-  --spacing-base-3: 11px;
-  --spacing-base-4: 12px;
-  --spacing-base-5: 13px;
-  --spacing-base-6: 14px;
-  --spacing-md-1: 16px;
-  --spacing-md-2: 17px;
-  --spacing-lg: 20px;
-
-  --radius-pill-message-bubble: 18px;
-  --radius-card-input: 16px;
-  --radius-large-pill: 23px;
-  --radius-full-circle: 50%;
-  --radius: 16px;
-
-  --background: #000000;
-  --foreground: #f5f5f7;
-  --card: #09090f;
-  --card-foreground: #f5f5f7;
-  --popover: #09090f;
-  --popover-foreground: #f5f5f7;
-  --primary: #0000ff;
-  --primary-foreground: #ffffff;
-  --secondary: #09090f;
-  --secondary-foreground: #f5f5f7;
-  --muted: #09090f;
-  --muted-foreground: rgba(245, 245, 247, 0.7);
-  --accent: rgba(0, 0, 255, 0.15);
-  --accent-foreground: #f5f5f7;
-  --destructive: #ff3b30;
-  --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.12);
-  --input: rgba(255, 255, 255, 0.12);
-  --ring: #0000ff;
-  --bubble-user: #0000ff;
-  --bubble-user-foreground: #ffffff;
-  --bubble-assistant: #09090f;
-  --bubble-assistant-foreground: #f5f5f7;
-  --ios-blue: #0000ff;
-  --ios-gray: rgba(245, 245, 247, 0.6);
-  --nav: rgba(0, 0, 0, 0.8);
-  --chart-1: #0000ff;
-  --chart-2: #34c759;
-  --chart-3: #ff9500;
-  --chart-4: #af52de;
-  --chart-5: #ff2d55;
-  --sidebar: #09090f;
-  --sidebar-foreground: #f5f5f7;
-  --sidebar-primary: #0000ff;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(0, 0, 255, 0.15);
-  --sidebar-accent-foreground: #f5f5f7;
-  --sidebar-border: rgba(255, 255, 255, 0.12);
-  --sidebar-ring: #0000ff;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a;
+  --primary-foreground: #f8fafc;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0f172a;
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #f5f5f7;
-  --card: #09090f;
-  --card-foreground: #f5f5f7;
-  --popover: #09090f;
-  --popover-foreground: #f5f5f7;
-  --primary: #0000ff;
-  --primary-foreground: #ffffff;
-  --secondary: #09090f;
-  --secondary-foreground: #f5f5f7;
-  --muted: #09090f;
-  --muted-foreground: rgba(245, 245, 247, 0.7);
-  --accent: rgba(0, 0, 255, 0.2);
-  --accent-foreground: #f5f5f7;
-  --destructive: #ff453a;
-  --destructive-foreground: #ffffff;
-  --border: rgba(255, 255, 255, 0.12);
-  --input: rgba(255, 255, 255, 0.12);
-  --ring: #0000ff;
-  --bubble-user: #0000ff;
-  --bubble-user-foreground: #ffffff;
-  --bubble-assistant: #09090f;
-  --bubble-assistant-foreground: #f5f5f7;
-  --ios-blue: #0000ff;
-  --ios-gray: rgba(245, 245, 247, 0.6);
-  --nav: rgba(0, 0, 0, 0.85);
-  --chart-1: #0000ff;
-  --chart-2: #30d158;
-  --chart-3: #ff9f0a;
-  --chart-4: #bf5af2;
-  --chart-5: #ff375f;
-  --sidebar: #09090f;
-  --sidebar-foreground: #f5f5f7;
-  --sidebar-primary: #0000ff;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(0, 0, 255, 0.2);
-  --sidebar-accent-foreground: #f5f5f7;
-  --sidebar-border: rgba(255, 255, 255, 0.12);
-  --sidebar-ring: #0000ff;
+  --radius-pill-message-bubble: 1.5rem;
+  --radius-card-input: 0.75rem;
+  --radius-large-pill: 9999px;
+  --radius-full-circle: 9999px;
+
+  --color-surface-base: #090d16;
+  --color-deep-navy-glow: rgba(59, 130, 246, 0.2);
+  --color-foreground-primary: #f8fafc;
+  --color-foreground-inverse-button-text: #090d16;
+  --color-accent-blue: #3b82f6;
+  --color-soft-mint: #34d399;
+
+  --background: #090d16;
+  --foreground: #f8fafc;
+  --card: #0f172a;
+  --card-foreground: #f8fafc;
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+  --primary: #f8fafc;
+  --primary-foreground: #0f172a;
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
+  --destructive: #7f1d1d;
+  --destructive-foreground: #f8fafc;
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #cbd5e1;
 }
 
 @layer base {
   * {
-    border-color: var(--color-border);
-    -webkit-tap-highlight-color: transparent;
+    @apply border-border outline-ring/50;
   }
-
-  html,
   body {
-    height: 100%;
-    overscroll-behavior-y: none;
-  }
-
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    @apply bg-background text-foreground;
     font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
   }
-
-  button {
-    -webkit-user-select: none;
-    user-select: none;
-  }
-}
-
-@layer utilities {
-  .ios-blur {
-    background-color: var(--nav);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-  }
-
-  .ios-scroll {
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .ios-scroll::-webkit-scrollbar {
-    display: none;
-  }
-
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .tap-shrink {
-    transition:
-      transform 0.12s ease,
-      opacity 0.12s ease;
-  }
-
-  .tap-shrink:active {
-    transform: scale(0.94);
-    opacity: 0.8;
-  }
-
-  .bubble-shadow {
-    box-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.3);
-  }
-}
-
-@keyframes ios-typing {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.4;
-  }
-  30% {
-    transform: translateY(-3px);
-    opacity: 1;
-  }
-}
-
-.typing-dot {
-  animation: ios-typing 1.2s infinite ease-in-out;
 }
