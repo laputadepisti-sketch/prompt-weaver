@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
+
+@source "../src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -245,6 +246,7 @@
     transform: translateY(0);
     opacity: 0.4;
   }
+
   30% {
     transform: translateY(-3px);
     opacity: 1;
@@ -259,6 +261,7 @@
   from {
     transform: translateX(-100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -268,6 +271,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
