@@ -155,7 +155,7 @@ export const Route = createFileRoute("/api/chat")({
 
         if (lovableKey) {
           try {
-            const primary = buildStreamResponse(
+            const primary = await buildStreamResponse(
               "lovable",
               messages,
               skill,
@@ -189,7 +189,7 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         try {
-          return buildStreamResponse(
+          return await buildStreamResponse(
             "llmapi",
             messages,
             skill,
