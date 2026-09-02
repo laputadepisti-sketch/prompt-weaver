@@ -34,13 +34,13 @@ function uiMessageText(message: UIMessage): string {
 
 type ProviderSource = "lovable" | "llmapi";
 
-function buildStreamResponse(
+async function buildStreamResponse(
   source: ProviderSource,
   messages: UIMessage[],
   skill: SkillId,
   conversationId: string,
   abortSignal: AbortSignal,
-): Response {
+): Promise<Response> {
   const model =
     source === "lovable"
       ? createLovableAiGatewayResponsesProvider(process.env.LOVABLE_API_KEY!)(
@@ -51,7 +51,7 @@ function buildStreamResponse(
   const result = streamText({
     model,
     system: systemPromptFor(skill),
-    messages: convertToModelMessages(messages),
+    messages: await convertToModelMessages(messages),
     abortSignal,
     providerOptions: {
       openai: {
