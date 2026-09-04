@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
-import { createLlmApiProvider, LLMAPI_MODEL } from "@/lib/llmapi.server";
+import {
+  convertToModelMessages,
+  createUIMessageStreamResponse,
+  streamText,
+  type UIMessage,
+  type UIMessageChunk,
+} from "ai";
+import { createLlmApiProvider, LLMAPI_CANDIDATES } from "@/lib/llmapi.server";
 import { OPTIMIZER_KNOWLEDGE } from "@/lib/optimizer-knowledge.server";
 import { storeConversationTurns } from "@/lib/conversation-store.server";
 import { isSkillId, type SkillId } from "@/lib/skills";
@@ -67,43 +73,105 @@ export const Route = createFileRoute("/api/chat")({
             : crypto.randomUUID();
 
         const provider = createLlmApiProvider(llmapiKey);
-        const model = provider.responses(LLMAPI_MODEL);
+        const modelMessages = await convertToModelMessages(messages);
 
-        const result = streamText({
-          model,
-          system: systemPromptFor(skill),
-          messages: await convertToModelMessages(messages),
-          abortSignal: request.signal,
-          providerOptions: {
-            openai: {
-              reasoning: { mode: "pro", effort: "xhigh" },
-              store: false,
-              include: ["reasoning.encrypted_content"],
-            },
-          } as never,
-        });
+        const persist = async (finalMessages: UIMessage[]) => {
+          try {
+            await storeConversationTurns(
+              finalMessages
+                .map((message, index) => ({
+                  conversationId,
+                  role:
+                    message.role === "assistant" ? ("assistant" as const) : ("user" as const),
+                  text: uiMessageText(message),
+                  index,
+                }))
+                .filter((turn) => turn.text.length > 0),
+            );
+          } catch (error) {
+            console.error("Failed to store conversation:", error);
+          }
+        };
 
-        return result.toUIMessageStreamResponse({
-          sendReasoning: true,
-          originalMessages: messages,
-          onFinish: async ({ messages: finalMessages }) => {
-            try {
-              await storeConversationTurns(
-                finalMessages
-                  .map((message, index) => ({
-                    conversationId,
-                    role:
-                      message.role === "assistant" ? ("assistant" as const) : ("user" as const),
-                    text: uiMessageText(message),
-                    index,
-                  }))
-                  .filter((turn) => turn.text.length > 0),
-              );
-            } catch (error) {
-              console.error("Failed to store conversation:", error);
+        let lastErrorText = "The AI provider is unavailable.";
+
+        for (const candidate of LLMAPI_CANDIDATES) {
+          let reader: ReadableStreamDefaultReader<UIMessageChunk> | null = null;
+          try {
+            const result = streamText({
+              model: provider.responses(candidate.model),
+              system: systemPromptFor(skill),
+              messages: modelMessages,
+              abortSignal: request.signal,
+              providerOptions: candidate.providerOptions as never,
+            });
+
+            const uiStream = result.toUIMessageStream({
+              sendReasoning: true,
+              originalMessages: messages,
+              onFinish: async ({ messages: finalMessages }) => {
+                await persist(finalMessages);
+              },
+            });
+
+            reader = uiStream.getReader();
+
+            const buffered: UIMessageChunk[] = [];
+            let failed = false;
+
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              if (value.type === "error") {
+                lastErrorText =
+                  typeof value.errorText === "string" && value.errorText.length > 0
+                    ? value.errorText
+                    : lastErrorText;
+                failed = true;
+                break;
+              }
+              buffered.push(value);
+              if (value.type === "text-delta" || value.type === "reasoning-delta") {
+                break;
+              }
             }
-          },
-        });
+
+            if (failed) {
+              await reader.cancel().catch(() => undefined);
+              reader = null;
+              continue;
+            }
+
+            const activeReader = reader;
+            const stream = new ReadableStream<UIMessageChunk>({
+              start(controller) {
+                for (const chunk of buffered) {
+                  controller.enqueue(chunk);
+                }
+              },
+              async pull(controller) {
+                const { value, done } = await activeReader.read();
+                if (done) {
+                  controller.close();
+                  return;
+                }
+                controller.enqueue(value);
+              },
+              async cancel(reason) {
+                await activeReader.cancel(reason).catch(() => undefined);
+              },
+            });
+
+            return createUIMessageStreamResponse({ stream });
+          } catch (error) {
+            if (reader) {
+              await reader.cancel().catch(() => undefined);
+            }
+            lastErrorText = error instanceof Error ? error.message : lastErrorText;
+          }
+        }
+
+        return Response.json({ error: lastErrorText }, { status: 502 });
       },
     },
   },
