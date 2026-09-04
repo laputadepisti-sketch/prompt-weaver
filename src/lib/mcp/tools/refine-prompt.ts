@@ -1,7 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { generateText } from "ai";
-import { createMcpGateway } from "../gateway";
+import { createMcpGateway, LLMAPI_MODEL } from "../gateway";
 import { OPTIMIZER_SYSTEM_PROMPT } from "../system-prompt";
 
 export default defineTool({
@@ -21,16 +21,16 @@ export default defineTool({
   },
   annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: false },
   handler: async ({ prompt, instruction }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.LLMAPI_KEY;
     if (!apiKey) {
       return {
-        content: [{ type: "text", text: "LOVABLE_API_KEY is not configured." }],
+        content: [{ type: "text", text: "LLMAPI_KEY is not configured." }],
         isError: true,
       };
     }
 
-    const gateway = createMcpGateway(apiKey);
-    const model = gateway.chatModel("google/gemini-3.6-flash");
+    const provider = createMcpGateway(apiKey);
+    const model = provider.responses(LLMAPI_MODEL);
 
     const userContent = [
       "Here is the current optimized prompt:",
@@ -46,6 +46,13 @@ export default defineTool({
       model,
       system: OPTIMIZER_SYSTEM_PROMPT,
       messages: [{ role: "user", content: userContent }],
+      providerOptions: {
+        openai: {
+          reasoning: { mode: "pro", effort: "xhigh" },
+          store: false,
+          include: ["reasoning.encrypted_content"],
+        },
+      } as never,
     });
 
     return {
