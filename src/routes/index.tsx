@@ -2,35 +2,34 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, PanelLeft, Sparkles, Square, SquarePen, Wand2 } from "lucide-react";
+import { ArrowUp, Sparkles, Square, SquarePen, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { MessageMarkdown } from "@/components/MessageMarkdown";
-import { SkillsSidebar } from "@/components/SkillsSidebar";
-import { DEFAULT_SKILL_ID, getSkill, type SkillId } from "@/lib/skills";
+import { OPTIMIZER_SKILL } from "@/lib/skills";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AI Chat — asszisztens és prompt optimizer egy helyen" },
+      { title: "Prompt Optimizer — rövid, egyértelmű promptok" },
       {
         name: "description",
         content:
-          "Sötét, natív iOS hangulatú AI chat. Válts skillt az oldalsávban: általános asszisztens vagy modellfüggetlen prompt optimizer.",
+          "Illeszd be a nyers promptodat, és kapj rövid, egyértelmű, bármelyik AI modellhez illő változatot, amit további utasításokkal finomíthatsz.",
       },
       {
         property: "og:title",
-        content: "AI Chat — asszisztens és prompt optimizer egy helyen",
+        content: "Prompt Optimizer — rövid, egyértelmű promptok",
       },
       {
         property: "og:description",
         content:
-          "Sötét, natív iOS hangulatú AI chat. Válts skillt az oldalsávban: általános asszisztens vagy modellfüggetlen prompt optimizer.",
+          "Illeszd be a nyers promptodat, és kapj rövid, egyértelmű, bármelyik AI modellhez illő változatot, amit további utasításokkal finomíthatsz.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: ChatApp,
+  component: OptimizerApp;
 });
 
 function messageText(message: UIMessage): string {
@@ -49,27 +48,19 @@ function newConversationId(): string {
   return `conv-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function ChatApp() {
+function OptimizerApp() {
   const [input, setInput] = useState("");
-  const [skillId, setSkillId] = useState<SkillId>(DEFAULT_SKILL_ID);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversationId, setConversationId] = useState(() => newConversationId());
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const skill = getSkill(skillId);
+  const skill = OPTIMIZER_SKILL;
 
   const { messages, sendMessage, status, setMessages, stop } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
     onError: (error) => {
       const message = error.message ?? "";
-      toast.error(
-        /402|payment required|credit/i.test(message)
-          ? "Elfogytak az AI kreditek."
-          : /429|rate limit|too many/i.test(message)
-            ? "Túl sok kérés egyszerre. Próbáld újra pár másodperc múlva."
-            : "Nem sikerült választ kapni. Próbáld újra.",
-      );
+      toast.error(message.length > 0 ? message : "Nem sikerült választ kapni.");
     },
   });
 
@@ -99,12 +90,10 @@ function ChatApp() {
     const trimmed = input.trim();
     if (!trimmed || isBusy) return;
     const payload =
-      skillId === "optimizer" && !hasAssistant && !/^\s*prompt:/i.test(trimmed)
-        ? `prompt: ${trimmed}`
-        : trimmed;
-    sendMessage({ text: payload }, { body: { conversationId, skill: skillId } });
+      !hasAssistant && !/^\s*prompt:/i.test(trimmed) ? `prompt: ${trimmed}` : trimmed;
+    sendMessage({ text: payload }, { body: { conversationId } });
     setInput("");
-  }, [input, isBusy, skillId, hasAssistant, sendMessage, conversationId]);
+  }, [input, isBusy, hasAssistant, sendMessage, conversationId]);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -121,35 +110,13 @@ function ChatApp() {
     textareaRef.current?.focus();
   }, [isBusy, stop, setMessages]);
 
-  const pickSkill = useCallback(
-    (next: SkillId) => {
-      setSidebarOpen(false);
-      if (next === skillId) return;
-      setSkillId(next);
-      startNew();
-    },
-    [skillId, startNew],
-  );
-
   return (
     <div className="flex h-[100dvh] flex-col">
-      <SkillsSidebar
-        open={sidebarOpen}
-        activeSkill={skillId}
-        onSelect={pickSkill}
-        onClose={() => setSidebarOpen(false)}
-      />
-
       <header className="ios-blur safe-top sticky top-0 z-20 border-b border-glass-border">
         <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-2 px-3 py-2.5">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Skillek megnyitása"
-            className="tap-shrink glass flex h-9 w-9 items-center justify-center rounded-full text-foreground"
-          >
-            <PanelLeft size={18} />
-          </button>
+          <div className="glass flex h-9 w-9 items-center justify-center rounded-full text-ios-blue">
+            <Wand2 size={18} />
+          </div>
 
           <div className="min-w-0 text-center leading-tight">
             <h1 className="truncate text-[16px] font-semibold tracking-tight">{skill.name}</h1>
@@ -224,9 +191,7 @@ function ChatApp() {
               onKeyDown={onKeyDown}
               rows={1}
               placeholder={
-                skillId === "optimizer" && hasAssistant
-                  ? "Finomíts tovább, pl. „tedd rövidebbé”…"
-                  : skill.placeholder
+                hasAssistant ? "Finomíts tovább, pl. „tedd rövidebbé”…" : skill.placeholder
               }
               className="ios-scroll max-h-40 flex-1 resize-none bg-transparent px-2 py-1.5 text-[16px] leading-relaxed outline-none placeholder:text-muted-foreground"
             />
