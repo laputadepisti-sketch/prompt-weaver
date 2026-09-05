@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: OptimizerApp;
+  component: OptimizerApp,
 });
 
 function messageText(message: UIMessage): string {
